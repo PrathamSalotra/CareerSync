@@ -1,0 +1,14 @@
+name: Scheduled Cleanup Job
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Run daily at 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cleanup Endpoint
+        run: |
+          echo "Placeholder for cleanup workflow in Phase 16"
