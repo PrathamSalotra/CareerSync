@@ -16,10 +16,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+import authRoutes from './modules/auth/auth.routes.js';
+
 // API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+app.use('/api/auth', authRoutes);
 
 // Catch-all 404 handler
 app.use((req, res) => {
