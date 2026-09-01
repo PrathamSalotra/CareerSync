@@ -22,6 +22,16 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Handle Multer errors (e.g., file too large)
+  if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      error: {
+        code: 'FILE_TOO_LARGE',
+        message: 'File size exceeds the 5 MiB limit',
+      },
+    });
+  }
+
   // Log unhandled error with only safe metadata and request ID (never body or secrets)
   console.error(`[${reqId}] ${req.method} ${req.originalUrl} - Unhandled Error:`, err.message);
 

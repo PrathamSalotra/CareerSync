@@ -17,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 import authRoutes from './modules/auth/auth.routes.js';
+import resumesRoutes from './modules/resumes/resumes.routes.js';
 
 // API Routes
 app.get('/api/health', (req, res) => {
@@ -24,6 +25,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/resumes', resumesRoutes);
 
 // Catch-all 404 handler
 app.use((req, res) => {
