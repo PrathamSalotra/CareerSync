@@ -4,7 +4,7 @@ import { requireAuth } from '../../middleware/auth.js';
 import { requireCsrf } from '../../middleware/csrf.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateResumeFile } from './resumes.validation.js';
-import { uploadResume } from './resumes.controller.js';
+import { uploadResume, getUserResumes, getResumeById, deleteResume } from './resumes.controller.js';
 
 const router = Router();
 
@@ -16,8 +16,14 @@ const upload = multer({
   },
 });
 
-// Protect all resume routes with auth and CSRF (since all will be state-changing or protected data)
+// Protect all resume routes with auth
 router.use(requireAuth);
+
+// Endpoint: GET /api/resumes
+router.get('/', asyncHandler(getUserResumes));
+
+// Endpoint: GET /api/resumes/:id
+router.get('/:id', asyncHandler(getResumeById));
 
 // Endpoint: POST /api/resumes
 router.post(
@@ -27,5 +33,8 @@ router.post(
   validateResumeFile,    // Our custom magic byte validator
   asyncHandler(uploadResume)
 );
+
+// Endpoint: DELETE /api/resumes/:id
+router.delete('/:id', requireCsrf, asyncHandler(deleteResume));
 
 export default router;

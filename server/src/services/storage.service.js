@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '../config/index.js';
 
@@ -63,7 +63,27 @@ export const getResumeDownloadUrl = async (objectKey) => {
   return getSignedUrl(s3Client, command, { expiresIn: 900 });
 };
 
+/**
+ * Deletes a resume file from Cloudflare R2
+ * @param {string} objectKey - The R2 object key to delete
+ * @returns {Promise<void>}
+ */
+export const deleteResumeFromR2 = async (objectKey) => {
+  if (!s3Client) {
+    console.warn(`[Mock Storage] Would delete from R2 key: ${objectKey}`);
+    return;
+  }
+
+  const command = new DeleteObjectCommand({
+    Bucket: config.R2_BUCKET,
+    Key: objectKey,
+  });
+
+  await s3Client.send(command);
+};
+
 export default {
   uploadResumeToR2,
   getResumeDownloadUrl,
+  deleteResumeFromR2,
 };
