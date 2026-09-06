@@ -2,6 +2,8 @@ import { AppError } from '../../utils/errors.js';
 import { searchQuerySchema } from './search.validation.js';
 import { Resume, SearchReservation } from '../../models/index.js';
 import adzunaService from '../../services/adzuna.service.js';
+import vectorService from '../../services/vector.service.js';
+import scoringService from '../../services/scoring.service.js';
 
 export const performSearch = async (req, res) => {
   const userId = req.userId;
@@ -23,9 +25,10 @@ export const performSearch = async (req, res) => {
 
   // 2. Resume & Query Derivation
   let derivedQuery = query;
+  let resume = null;
 
   if (resumeId) {
-    const resume = await Resume.findById(resumeId);
+    resume = await Resume.findById(resumeId);
 
     if (!resume || resume.expiresAt < new Date()) {
       throw new AppError(404, 'NOT_FOUND', 'Resume not found or has expired');
@@ -93,8 +96,41 @@ export const performSearch = async (req, res) => {
     });
   }
 
-  // If a resumeId IS provided, we need Pinecone & Gemini, which is Phase 13
-  throw new AppError(501, 'NOT_IMPLEMENTED', 'Resume-based search (AI embedding and reasoning) will be implemented in Phase 13.');
+  // 7. Resume-Based Search (Phase 13)
+  // At this point, resumeId is present
+  const rankedJobs = await vectorService.rankJobs(
+    resume.parsed, 
+    derivedQuery, 
+    normalizedJobs, 
+    reservation._id
+  );
+
+  // Note: we need to pass whether the user explicitly supplied a query or not for scoring logic
+  const queryParams = {
+    query: query, // The exact user input, not the derived query
+    workArrangement: workArrangement,
+    cityOrState: cityOrState
+  };
+
+  const scoredJobs = rankedJobs.map(job => 
+    scoringService.calculateDeterministicScore(
+      resume.parsed, 
+      job, 
+      job.resumeCosine, 
+      job.titleCosine, 
+      queryParams
+    )
+  );
+
+  // Complete the reservation
+  reservation.state = 'completed';
+  await reservation.save();
+
+  return res.status(200).json({
+    message: 'Resume-based search completed successfully.',
+    reservationId: reservation._id,
+    jobs: scoredJobs,
+  });
 };
 
 export default {

@@ -17,7 +17,9 @@ export const fetchJobs = async (query, country, cityOrState) => {
   const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`);
   url.searchParams.append('app_id', config.ADZUNA_APP_ID);
   url.searchParams.append('app_key', config.ADZUNA_APP_KEY);
-  url.searchParams.append('results_per_page', '50');
+  // Reduced to 24 to exactly fit 2 searches per minute on the Google GenAI 100 RPM Free Tier
+  // 1 search = 1 resume + 1 query + 24 jobs + 24 titles = 50 requests
+  url.searchParams.append('results_per_page', '24');
   
   if (query) {
     url.searchParams.append('what', query);
