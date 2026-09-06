@@ -1,6 +1,7 @@
 import { AppError } from '../../utils/errors.js';
 import { searchQuerySchema } from './search.validation.js';
 import { Resume, SearchReservation } from '../../models/index.js';
+import adzunaService from '../../services/adzuna.service.js';
 
 export const performSearch = async (req, res) => {
   const userId = req.userId;
@@ -72,17 +73,28 @@ export const performSearch = async (req, res) => {
     expiresAt: new Date(Date.now() + 10 * 60 * 1000), // Expires in 10 minutes
   });
 
-  // 5. Scaffold Response
-  return res.status(200).json({
-    message: 'Search reservation created successfully. Adzuna integration pending.',
-    reservationId: reservation._id,
-    searchParams: {
-      derivedQuery,
-      country,
-      cityOrState,
-      workArrangement
-    }
-  });
+  // 5. Fetch and Normalize Jobs from Adzuna
+  const rawJobs = await adzunaService.fetchJobs(derivedQuery, country, cityOrState);
+  const normalizedJobs = adzunaService.normalizeAndFilterJobs(rawJobs, workArrangement);
+
+  // 6. Job-Only Exit Path
+  if (!resumeId) {
+    // If no resume, we just return the top 10 jobs
+    const topJobs = normalizedJobs.slice(0, 10);
+    
+    // Complete the reservation
+    reservation.state = 'completed';
+    await reservation.save();
+
+    return res.status(200).json({
+      message: 'Job-only search completed successfully.',
+      reservationId: reservation._id,
+      jobs: topJobs,
+    });
+  }
+
+  // If a resumeId IS provided, we need Pinecone & Gemini, which is Phase 13
+  throw new AppError(501, 'NOT_IMPLEMENTED', 'Resume-based search (AI embedding and reasoning) will be implemented in Phase 13.');
 };
 
 export default {
