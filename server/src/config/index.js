@@ -33,8 +33,8 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().min(1, 'R2_SECRET_ACCESS_KEY is required'),
   R2_BUCKET: z.string().min(1, 'R2_BUCKET is required'),
   R2_ENDPOINT: z.string().min(1, 'R2_ENDPOINT is required'),
-  RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),
-  RESEND_FROM_EMAIL: z.string().min(1, 'RESEND_FROM_EMAIL is required'),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASS: z.string().default(''),
   CLEANUP_SHARED_SECRET: z.string().min(1, 'CLEANUP_SHARED_SECRET is required'),
   APP_ORIGIN: z.string().min(1, 'APP_ORIGIN is required'),
 });

@@ -19,9 +19,17 @@ export const generateToken = (bytes = 32) => {
   return crypto.randomBytes(bytes).toString('hex');
 };
 
+export const generateOTP = (length = 6) => {
+  // Generate a cryptographically secure random number between 100000 and 999999
+  const min = Math.pow(10, length - 1);
+  const max = Math.pow(10, length) - 1;
+  return crypto.randomInt(min, max + 1).toString();
+};
+
 export default {
   hashPassword,
   verifyPassword,
   hashToken,
   generateToken,
+  generateOTP,
 };

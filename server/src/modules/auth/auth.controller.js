@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { User, RefreshToken, PasswordResetToken } from '../../models/index.js';
-import { hashPassword, verifyPassword, generateToken, hashToken } from '../../utils/passwords.js';
+import { hashPassword, verifyPassword, generateToken, hashToken, generateOTP } from '../../utils/passwords.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt.js';
 import { setAuthCookies, clearAuthCookies } from '../../utils/cookies.js';
 import { AppError } from '../../utils/errors.js';
@@ -231,8 +231,8 @@ export const forgotPassword = async (req, res) => {
     return res.status(200).json({ message: successMessage });
   }
 
-  const rawResetToken = generateToken(32);
-  const resetHash = hashToken(rawResetToken);
+  const rawOTP = generateOTP(6);
+  const resetHash = hashToken(rawOTP);
 
   await PasswordResetToken.create({
     userId: user._id,
@@ -240,15 +240,15 @@ export const forgotPassword = async (req, res) => {
     expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
   });
 
-  await emailService.sendPasswordResetEmail(user.email, rawResetToken);
+  await emailService.sendPasswordResetEmail(user.email, rawOTP);
 
   return res.status(200).json({ message: successMessage });
 };
 
 export const resetPassword = async (req, res) => {
-  const { token, password } = req.body;
+  const { otp, password } = req.body;
 
-  const resetHash = hashToken(token);
+  const resetHash = hashToken(otp);
   const resetTokenDoc = await PasswordResetToken.findOne({
     tokenHash: resetHash,
     usedAt: null,
@@ -256,7 +256,7 @@ export const resetPassword = async (req, res) => {
   }).populate('userId');
 
   if (!resetTokenDoc || !resetTokenDoc.userId) {
-    throw new AppError(400, 'VALIDATION_ERROR', 'Invalid or expired reset token');
+    throw new AppError(400, 'VALIDATION_ERROR', 'Invalid or expired OTP');
   }
 
   // Mark token as used
