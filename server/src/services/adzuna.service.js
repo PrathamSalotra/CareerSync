@@ -107,6 +107,9 @@ export const normalizeAndFilterJobs = (rawJobs, workArrangementFilter) => {
       continue;
     }
 
+    const redirectUrl = url || (jobId ? `https://www.adzuna.com/details/${jobId}` : 'https://www.adzuna.com');
+    const postedAt = raw.created ? new Date(raw.created) : (created ? new Date(created) : null);
+
     normalizedJobs.push({
       jobId,
       title,
@@ -114,9 +117,11 @@ export const normalizeAndFilterJobs = (rawJobs, workArrangementFilter) => {
       location,
       description,
       url,
+      redirectUrl,
       salaryMin,
       salaryMax,
       created,
+      postedAt,
       workArrangement,
     });
   }

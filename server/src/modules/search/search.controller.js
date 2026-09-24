@@ -1,9 +1,10 @@
 import { AppError } from '../../utils/errors.js';
 import { searchQuerySchema } from './search.validation.js';
-import { Resume, SearchReservation } from '../../models/index.js';
+import { Resume, SearchReservation, LearningResource, SearchHistory } from '../../models/index.js';
 import adzunaService from '../../services/adzuna.service.js';
 import vectorService from '../../services/vector.service.js';
 import scoringService from '../../services/scoring.service.js';
+import analysisService from '../../services/analysis.service.js';
 
 export const performSearch = async (req, res) => {
   const userId = req.userId;
@@ -83,8 +84,31 @@ export const performSearch = async (req, res) => {
   // 6. Job-Only Exit Path
   if (!resumeId) {
     // If no resume, we just return the top 10 jobs
-    const topJobs = normalizedJobs.slice(0, 10);
+    const topJobs = normalizedJobs.slice(0, 10).map(job => ({
+      ...job,
+      redirectUrl: job.redirectUrl || job.url || 'https://www.adzuna.com',
+      postedAt: job.postedAt || (job.created ? new Date(job.created) : null),
+      matchScore: null,
+      fitExplanation: null,
+      evidence: [],
+      gaps: { skillGaps: [], experienceGaps: [] }
+    }));
     
+    // Persist Search History (Phase 15)
+    await SearchHistory.create({
+      userId,
+      resumeId: null,
+      searchMode: 'job-only',
+      query: query || null,
+      derivedQuery: derivedQuery || null,
+      country,
+      cityOrState: cityOrState || null,
+      workArrangement: workArrangement || null,
+      searchedAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days expiry
+      results: topJobs
+    });
+
     // Complete the reservation
     reservation.state = 'completed';
     await reservation.save();
@@ -122,6 +146,87 @@ export const performSearch = async (req, res) => {
     )
   );
 
+  // 8. AI Fit & Gap Analysis (Phase 14)
+  const top10Jobs = scoredJobs.slice(0, 10);
+  const remainingJobs = scoredJobs.slice(10);
+  
+  // Fetch permitted learning resources
+  const activeResources = await LearningResource.find({ active: true }).lean();
+
+  let validAnalyses = [];
+  try {
+    validAnalyses = await analysisService.generateAnalyses(resume.parsed, top10Jobs, activeResources);
+  } catch (error) {
+    if (error.code === 'AI_ANALYSIS_UNAVAILABLE') {
+      await reservation.deleteOne(); // Release reservation
+      // Throwing this will let the errorHandler return 503 to the client
+      // The Pinecone namespace was already cleaned up in the `finally` block of vector.service.js
+      throw error;
+    }
+    throw error;
+  }
+
+  // Merge the AI analysis directly into the top 10 jobs
+  const analyzedTop10Jobs = top10Jobs.map(job => {
+    const aiData = validAnalyses.find(a => a.jobId === job.jobId);
+    const redirectUrl = job.redirectUrl || job.url || 'https://www.adzuna.com';
+    const postedAt = job.postedAt || (job.created ? new Date(job.created) : null);
+    if (aiData) {
+      return {
+        ...job,
+        redirectUrl,
+        postedAt,
+        fitExplanation: aiData.fitExplanation,
+        evidence: aiData.evidence,
+        gaps: {
+          skillGaps: (aiData.skillGaps || []).map(sg => ({
+            ...sg,
+            priority: ['high', 'medium', 'low'].includes(String(sg.priority).toLowerCase())
+              ? String(sg.priority).toLowerCase()
+              : 'medium'
+          })),
+          experienceGaps: aiData.experienceGaps || []
+        }
+      };
+    }
+    return {
+      ...job,
+      redirectUrl,
+      postedAt,
+      fitExplanation: null,
+      evidence: [],
+      gaps: { skillGaps: [], experienceGaps: [] }
+    };
+  });
+
+  const formattedRemainingJobs = remainingJobs.map(job => ({
+    ...job,
+    redirectUrl: job.redirectUrl || job.url || 'https://www.adzuna.com',
+    postedAt: job.postedAt || (job.created ? new Date(job.created) : null),
+    fitExplanation: null,
+    evidence: [],
+    gaps: { skillGaps: [], experienceGaps: [] }
+  }));
+
+  const finalJobsList = [...analyzedTop10Jobs, ...formattedRemainingJobs];
+
+  // 9. Persist Search History (Phase 15)
+  const expiresAt = resume ? resume.expiresAt : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  
+  await SearchHistory.create({
+    userId,
+    resumeId: resume ? resume._id : null,
+    searchMode: resume ? 'resume' : 'job-only',
+    query: query || null,
+    derivedQuery: derivedQuery || null,
+    country,
+    cityOrState: cityOrState || null,
+    workArrangement: workArrangement || null,
+    searchedAt: new Date(),
+    expiresAt,
+    results: finalJobsList
+  });
+
   // Complete the reservation
   reservation.state = 'completed';
   await reservation.save();
@@ -129,10 +234,60 @@ export const performSearch = async (req, res) => {
   return res.status(200).json({
     message: 'Resume-based search completed successfully.',
     reservationId: reservation._id,
-    jobs: scoredJobs,
+    jobs: finalJobsList,
   });
+};
+
+export const getSearchHistory = async (req, res) => {
+  const userId = req.userId;
+  
+  const history = await SearchHistory.find({ userId })
+    .select('-results')
+    .sort({ searchedAt: -1 })
+    .lean();
+    
+  return res.status(200).json(history);
+};
+
+export const getSearchById = async (req, res) => {
+  const userId = req.userId;
+  const searchId = req.params.id;
+  
+  try {
+    const search = await SearchHistory.findOne({ _id: searchId, userId }).lean();
+    if (!search) {
+      throw new AppError(404, 'NOT_FOUND', 'Saved search not found.');
+    }
+    return res.status(200).json(search);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      throw new AppError(404, 'NOT_FOUND', 'Saved search not found.');
+    }
+    throw err;
+  }
+};
+
+export const deleteSearchById = async (req, res) => {
+  const userId = req.userId;
+  const searchId = req.params.id;
+  
+  try {
+    const result = await SearchHistory.deleteOne({ _id: searchId, userId });
+    if (result.deletedCount === 0) {
+      throw new AppError(404, 'NOT_FOUND', 'Saved search not found.');
+    }
+    return res.status(204).send();
+  } catch (err) {
+    if (err.name === 'CastError') {
+      throw new AppError(404, 'NOT_FOUND', 'Saved search not found.');
+    }
+    throw err;
+  }
 };
 
 export default {
   performSearch,
+  getSearchHistory,
+  getSearchById,
+  deleteSearchById,
 };

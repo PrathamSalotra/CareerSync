@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: Trigger Cleanup Endpoint
         run: |
-          echo "Placeholder for cleanup workflow in Phase 16"
+          curl -X POST -H "Authorization: Bearer ${{ secrets.CLEANUP_SHARED_SECRET }}" ${{ secrets.API_BASE_URL }}/api/internal/cleanup

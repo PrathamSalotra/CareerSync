@@ -19,6 +19,7 @@ app.use(cookieParser());
 import authRoutes from './modules/auth/auth.routes.js';
 import resumesRoutes from './modules/resumes/resumes.routes.js';
 import searchRoutes from './modules/search/search.routes.js';
+import internalRoutes from './modules/internal/internal.routes.js';
 
 // API Routes
 app.get('/api/health', (req, res) => {
@@ -28,6 +29,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumesRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/internal', internalRoutes);
 
 // Catch-all 404 handler
 app.use((req, res) => {

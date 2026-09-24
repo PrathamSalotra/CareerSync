@@ -185,7 +185,7 @@ export const refresh = async (req, res) => {
     csrfToken: newCsrfToken,
   });
 
-  return res.status(200).json({ status: 'ok' });
+  return res.status(200).json({ message: 'Token refreshed successfully' });
 };
 
 export const logout = async (req, res) => {
