@@ -155,41 +155,52 @@ const validateAndCleanAnalyses = (parsedJson, requestedJobIds, allowedUrls) => {
 const callGeminiWithRetry = async (promptText) => {
   if (!aiClient) throw new AppError(500, 'SERVER_ERROR', 'Google GenAI is not configured');
 
-  const maxRetries = 1;
-  
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: promptText,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: AI_ANALYSIS_SCHEMA,
-          temperature: 0.2,
-          maxOutputTokens: 8192
+  const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash'];
+  let lastError = null;
+
+  for (const model of candidateModels) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model,
+          contents: promptText,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: AI_ANALYSIS_SCHEMA,
+            temperature: 0.2,
+            maxOutputTokens: 8192
+          }
+        });
+
+        if (!response.text) {
+          throw new Error("Empty response from model");
         }
-      });
 
-      if (!response.text) {
-        throw new Error("Empty response from model");
+        return JSON.parse(response.text);
+
+      } catch (error) {
+        lastError = error;
+        // Check if it's a transient rate limit or server overload
+        const isTransient = error.message && (
+          error.message.includes('429') ||
+          error.message.includes('503') ||
+          error.message.includes('high demand') ||
+          error.message.includes('UNAVAILABLE')
+        );
+        
+        if (isTransient && attempt === 0) {
+          console.warn(`Gemini API error (${model}, Attempt ${attempt + 1}). Retrying in 2 seconds... ${error.message.slice(0, 100)}`);
+          await sleep(2000);
+          continue;
+        }
+        
+        break;
       }
-
-      return JSON.parse(response.text);
-
-    } catch (error) {
-      // Check if it's a transient rate limit or server overload
-      const isTransient = error.message && (error.message.includes('429') || error.message.includes('503'));
-      
-      if (isTransient && attempt < maxRetries) {
-        console.warn(`Gemini API error (Attempt ${attempt + 1}/${maxRetries + 1}). Retrying in 2 seconds... ${error.message}`);
-        await sleep(2000);
-        continue;
-      }
-      
-      console.error(`Gemini API permanent failure:`, error);
-      throw new AppError(503, 'AI_ANALYSIS_UNAVAILABLE', 'Failed to generate personalized AI analysis.');
     }
   }
+
+  console.error(`Gemini API permanent failure:`, lastError);
+  throw new AppError(503, 'AI_ANALYSIS_UNAVAILABLE', 'Failed to generate personalized AI analysis.');
 };
 
 /**

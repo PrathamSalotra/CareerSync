@@ -108,24 +108,48 @@ Extract all relevant information and format it strictly matching the provided JS
     });
   }
 
-  const response = await aiClient.models.generateContent({
-    model: 'gemini-3.6-flash',
-    contents: [{ role: 'user', parts }],
-    config: {
-      responseMimeType: 'application/json',
-      responseSchema: RESUME_SCHEMA,
-    },
-  });
+  const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash'];
+  let lastError = null;
 
-  if (!response.text) {
-    throw new Error('No text generated from Gemini.');
+  for (const model of candidateModels) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model,
+          contents: [{ role: 'user', parts }],
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: RESUME_SCHEMA,
+          },
+        });
+
+        if (!response.text) {
+          throw new Error('No text generated from Gemini.');
+        }
+
+        return JSON.parse(response.text);
+      } catch (err) {
+        lastError = err;
+        const isTransient = err.message && (
+          err.message.includes('503') ||
+          err.message.includes('429') ||
+          err.message.includes('high demand') ||
+          err.message.includes('UNAVAILABLE')
+        );
+
+        if (isTransient && attempt === 0) {
+          console.warn(`Gemini (${model}) transient spike (${err.message.slice(0, 100)}). Retrying in 1.5s...`);
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          continue;
+        }
+
+        // If not transient or attempt failed, break to next candidate model
+        break;
+      }
+    }
   }
 
-  try {
-    return JSON.parse(response.text);
-  } catch (err) {
-    throw new Error('Failed to parse Gemini output as JSON.');
-  }
+  throw lastError || new Error('Failed to parse resume using AI.');
 };
 
 export default {

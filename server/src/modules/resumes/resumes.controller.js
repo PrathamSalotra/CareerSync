@@ -26,21 +26,6 @@ export const uploadResume = async (req, res) => {
     );
   }
 
-  // Generate a new Resume ID before upload
-  const resumeId = new mongoose.Types.ObjectId();
-
-  // Upload to R2
-  const rawFileObjectKey = await storageService.uploadResumeToR2(
-    userId,
-    resumeId.toString(),
-    req.file.originalname,
-    req.file.buffer,
-    req.file.mimetype
-  );
-
-  // Set expiration to 7 days
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
   // Extract and Parse Resume
   let extractedText = '';
   try {
@@ -56,6 +41,15 @@ export const uploadResume = async (req, res) => {
     console.log('Gemini Parsed Output:', JSON.stringify(parsedData, null, 2));
   } catch (err) {
     console.error('Gemini parsing failed:', err);
+    const isOverloaded = err.message && (
+      err.message.includes('503') ||
+      err.message.includes('429') ||
+      err.message.includes('high demand') ||
+      err.message.includes('UNAVAILABLE')
+    );
+    if (isOverloaded) {
+      throw new AppError(503, 'SERVICE_UNAVAILABLE', 'AI resume parsing service is temporarily unavailable due to high demand. Please retry in a few moments.');
+    }
     throw new AppError(422, 'RESUME_PARSE_FAILED', 'Failed to parse the resume using AI');
   }
 
@@ -66,6 +60,21 @@ export const uploadResume = async (req, res) => {
   }
 
   const validParsedResume = validationResult.data;
+
+  // Generate a new Resume ID before upload
+  const resumeId = new mongoose.Types.ObjectId();
+
+  // Upload to R2 only after successful validation
+  const rawFileObjectKey = await storageService.uploadResumeToR2(
+    userId,
+    resumeId.toString(),
+    req.file.originalname,
+    req.file.buffer,
+    req.file.mimetype
+  );
+
+  // Set expiration to 7 days
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   // Save to DB (including parsed data)
   const resume = await Resume.create({
