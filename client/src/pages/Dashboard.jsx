@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiClient } from '../api/client';
+import { useUser } from '../contexts/UserContext';
 
 const BookmarkButton = ({ initialActive = false }) => {
   const [active, setActive] = useState(initialActive);
@@ -27,26 +27,8 @@ const BookmarkButton = ({ initialActive = false }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await apiClient('/api/account/me');
-        setUser(response.user);
-      } catch (err) {
-        if (err.status === 401) {
-          navigate('/login');
-        } else {
-          console.error('Failed to load profile:', err);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [navigate]);
+  const { user, loadingUser } = useUser();
+  const loading = loadingUser;
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'User';
 
@@ -71,16 +53,13 @@ const Dashboard = () => {
               <Link to="/history" className="text-outline-variant hover:text-on-primary font-label-md text-label-md px-space-md py-space-xs transition-colors rounded-full">
                 History
               </Link>
-              <Link to="/settings" className="text-outline-variant hover:text-on-primary font-label-md text-label-md px-space-md py-space-xs transition-colors rounded-full">
-                Settings
-              </Link>
             </nav>
             <div className="flex items-center gap-space-md">
               <button className="relative p-space-xs text-outline-variant hover:text-on-primary transition-colors flex items-center justify-center"></button>
               <div className="flex items-center gap-space-sm pl-space-xs">
                 <div className="hidden md:flex flex-col text-right">
-                  <span className="font-label-md text-label-md text-on-primary leading-tight">{user?.name || 'Alex Rivers'}</span>
-                  <span className="font-label-sm text-label-sm text-outline-variant leading-tight">Software Engineer</span>
+                  <span className="font-label-md text-label-md text-on-primary leading-tight">{user ? user.name : '\u00A0'}</span>
+                  <span className="font-label-sm text-label-sm text-outline-variant leading-tight">{user ? user.email : '\u00A0'}</span>
                 </div>
               </div>
             </div>

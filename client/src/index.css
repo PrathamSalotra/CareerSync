@@ -6,6 +6,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
   html,body {
     margin: 0;
     padding: 0;

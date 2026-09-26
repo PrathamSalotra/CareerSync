@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
+import { useUser } from '../contexts/UserContext';
 
 const Resumes = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, loadingUser } = useUser();
   const [loading, setLoading] = useState(true);
   const [resumes, setResumes] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -13,11 +14,7 @@ const Resumes = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileRes, resumesRes] = await Promise.all([
-          apiClient('/api/account/me'),
-          apiClient('/api/resumes')
-        ]);
-        setUser(profileRes.user);
+        const resumesRes = await apiClient('/api/resumes');
         setResumes(resumesRes.resumes);
       } catch (err) {
         if (err.status === 401) {
@@ -93,16 +90,13 @@ const Resumes = () => {
               <Link to="/history" className="text-outline-variant hover:text-on-primary font-label-md text-label-md px-space-md py-space-xs transition-colors rounded-full">
                 History
               </Link>
-              <Link to="/settings" className="text-outline-variant hover:text-on-primary font-label-md text-label-md px-space-md py-space-xs transition-colors rounded-full">
-                Settings
-              </Link>
             </nav>
             <div className="flex items-center gap-space-md">
               <button className="relative p-space-xs text-outline-variant hover:text-on-primary transition-colors flex items-center justify-center"></button>
               <div className="flex items-center gap-space-sm pl-space-xs">
                 <div className="hidden md:flex flex-col text-right">
-                  <span className="font-label-md text-label-md text-on-primary leading-tight">{user?.name || 'Alex Rivers'}</span>
-                  <span className="font-label-sm text-label-sm text-outline-variant leading-tight">Software Engineer</span>
+                  <span className="font-label-md text-label-md text-on-primary leading-tight">{user ? user.name : '\u00A0'}</span>
+                  <span className="font-label-sm text-label-sm text-outline-variant leading-tight">{user ? user.email : '\u00A0'}</span>
                 </div>
               </div>
             </div>

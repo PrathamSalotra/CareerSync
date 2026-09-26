@@ -242,11 +242,41 @@ export const getSearchHistory = async (req, res) => {
   const userId = req.userId;
   
   const history = await SearchHistory.find({ userId })
-    .select('-results')
     .sort({ searchedAt: -1 })
     .lean();
     
-  return res.status(200).json(history);
+  const formattedHistory = history.map(h => {
+    let topMatchScore = null;
+    let maxSalary = null;
+    let minSalary = null;
+    let jobsAnalyzed = h.results?.length || 0;
+
+    if (h.results && h.results.length > 0) {
+      // Find top match score
+      const matches = h.results.map(r => r.matchScore).filter(s => s != null);
+      if (matches.length > 0) {
+        topMatchScore = Math.max(...matches);
+      }
+
+      // Find salary range
+      const mins = h.results.map(r => r.salaryMin).filter(s => s != null);
+      const maxes = h.results.map(r => r.salaryMax).filter(s => s != null);
+      
+      if (mins.length > 0) minSalary = Math.min(...mins);
+      if (maxes.length > 0) maxSalary = Math.max(...maxes);
+    }
+
+    const { results, ...rest } = h;
+    return {
+      ...rest,
+      topMatchScore,
+      minSalary,
+      maxSalary,
+      jobsAnalyzed
+    };
+  });
+    
+  return res.status(200).json(formattedHistory);
 };
 
 export const getSearchById = async (req, res) => {
