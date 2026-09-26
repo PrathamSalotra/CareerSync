@@ -11,6 +11,17 @@ import { clearAuthCookies } from '../../utils/cookies.js';
 import { AppError } from '../../utils/errors.js';
 import storageService from '../../services/storage.service.js';
 
+export const getProfile = async (req, res) => {
+  const userId = req.userId;
+  const user = await User.findById(userId).select('-passwordHash');
+  
+  if (!user) {
+    throw new AppError(404, 'NOT_FOUND', 'User not found');
+  }
+
+  return res.status(200).json({ user });
+};
+
 export const deleteAccount = async (req, res) => {
   const { password, confirmation } = req.body;
   const userId = req.userId;
