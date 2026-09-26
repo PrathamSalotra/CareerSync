@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
+import Signup from './pages/Signup';
 import Login from './pages/Login';
 
 // Placeholder Components
 const Home = () => <div><h1>Home</h1><p>Welcome to CareerSync</p><Link to="/login">Login</Link></div>;
-const Signup = () => <div><h1>Signup</h1></div>;
 const ForgotPassword = () => <div><h1>Forgot Password</h1></div>;
 const ResetPassword = () => <div><h1>Reset Password</h1></div>;
 const Dashboard = () => <div><h1>Dashboard</h1></div>;
