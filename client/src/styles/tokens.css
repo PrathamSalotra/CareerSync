@@ -1,0 +1,127 @@
+/**
+ * CareerSync Design System Tokens
+ * Source: spec/ui specs/login/DESIGN.md
+ */
+
+:root {
+  /* Surfaces & Canvas */
+  --color-surface: #f8f9fb;
+  --color-surface-dim: #d9dadc;
+  --color-surface-bright: #f8f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #edeef0;
+  --color-surface-container-high: #e7e8ea;
+  --color-surface-container-highest: #e1e2e4;
+
+  /* Typography / Inks */
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #46464b;
+  --color-inverse-surface: #2e3132;
+  --color-inverse-on-surface: #f0f1f3;
+
+  /* Outlines & Borders */
+  --color-outline: #76777b;
+  --color-outline-variant: #c7c6cb;
+  --color-border: #eaebed;
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+
+  /* Primary Brand & Actions */
+  --color-primary: #121316;
+  --color-primary-hover: #2a2c32;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1b1b1f;
+  --color-on-primary-container: #848387;
+  --color-inverse-primary: #c7c6ca;
+
+  /* Secondary Accents */
+  --color-secondary: #006398;
+  --color-secondary-hover: #004b74;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #51b5ff;
+  --color-on-secondary-container: #00456c;
+  --color-secondary-fixed: #cde5ff;
+  --color-secondary-fixed-dim: #93ccff;
+  --color-on-secondary-fixed: #001d32;
+  --color-on-secondary-fixed-variant: #004b74;
+
+  /* Tertiary System */
+  --color-tertiary: #000000;
+  --color-tertiary-fixed: #f7decd;
+  --color-tertiary-fixed-dim: #d9c2b2;
+  --color-on-tertiary-fixed: #25190f;
+  --color-on-tertiary-fixed-variant: #544437;
+
+  /* Feedback System */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-error-border: #fca5a5;
+
+  --color-success: #1b5e3b;
+  --color-on-success: #ffffff;
+  --color-success-container: #ddf7e8;
+  --color-on-success-container: #0a3d24;
+
+  /* Category Pastel System */
+  --pastel-apricot: #ffe8d6;
+  --pastel-apricot-text: #7d3e1b;
+  --pastel-mint: #ddf7e8;
+  --pastel-mint-text: #1b5e3b;
+  --pastel-lilac: #e9e5fc;
+  --pastel-lilac-text: #43328b;
+  --pastel-sky: #e0f2fe;
+  --pastel-sky-text: #035388;
+  --pastel-rose: #fce4ec;
+  --pastel-rose-text: #881e48;
+
+  /* Typography Scale */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  --font-display-hero: 700 40px/48px var(--font-family);
+  --font-headline-lg: 700 26px/34px var(--font-family);
+  --font-headline-md: 600 20px/28px var(--font-family);
+  --font-headline-sm: 600 16px/24px var(--font-family);
+  
+  --font-body-lg: 400 16px/24px var(--font-family);
+  --font-body-md: 400 14px/20px var(--font-family);
+  --font-body-sm: 400 12px/18px var(--font-family);
+  
+  --font-label-md: 600 13px/18px var(--font-family);
+  --font-label-sm: 600 11px/16px var(--font-family);
+  --font-numeric: 700 18px/24px var(--font-family);
+
+  /* Radius System */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* Elevation / Shadows */
+  --shadow-xs: 0 1px 2px rgba(18, 19, 22, 0.04);
+  --shadow-sm: 0 1px 3px rgba(18, 19, 22, 0.05), 0 1px 2px rgba(18, 19, 22, 0.03);
+  --shadow-md: 0 4px 16px rgba(18, 19, 22, 0.06), 0 2px 6px rgba(18, 19, 22, 0.04);
+  --shadow-lg: 0 12px 32px -8px rgba(18, 19, 22, 0.08);
+  --shadow-card: 0 20px 60px -15px rgba(18, 19, 22, 0.06);
+  --shadow-modal: 0 24px 64px -12px rgba(0, 0, 0, 0.25);
+  --shadow-focus: 0 0 0 2px rgba(0, 99, 152, 0.35);
+
+  /* Spacing Scale */
+  --space-xs: 0.25rem; /* 4px */
+  --space-sm: 0.5rem;  /* 8px */
+  --space-md: 1rem;    /* 16px */
+  --space-lg: 1.5rem;  /* 24px */
+  --space-xl: 2rem;    /* 32px */
+  --space-2xl: 3rem;   /* 48px */
+  --space-gutter: 1.25rem;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}

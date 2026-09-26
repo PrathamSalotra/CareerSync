@@ -1,0 +1,67 @@
+.cs-navbar {
+  width: 100%;
+  background: rgba(248, 249, 251, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid rgba(234, 235, 237, 0.6);
+}
+
+.cs-navbar-container {
+  height: 64px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (min-width: 1024px) {
+  .cs-navbar-container {
+    padding: 0 3rem;
+  }
+}
+
+.cs-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.cs-brand-text {
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  letter-spacing: -0.02em;
+  color: var(--color-on-surface);
+  transition: color var(--transition-fast);
+}
+
+.cs-brand:hover .cs-brand-text {
+  color: var(--color-primary);
+}
+
+.cs-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.cs-nav-link {
+  font-family: var(--font-family);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.cs-nav-link:hover {
+  color: var(--color-on-surface);
+}
