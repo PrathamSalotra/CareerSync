@@ -10,6 +10,10 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Global middleware
+app.use((req, res, next) => {
+  console.log(`[DEBUG INCOMING] ${req.method} ${req.originalUrl}`);
+  next();
+});
 app.use(requestIdMiddleware);
 app.use(corsMiddleware);
 app.use(express.json());

@@ -51,6 +51,7 @@ export const apiClient = async (endpoint, options = {}) => {
     headers: {
       ...headers,
     },
+    credentials: 'include',
     signal: controller.signal,
     ...customOptions,
   };

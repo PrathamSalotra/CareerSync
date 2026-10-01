@@ -1,0 +1,1 @@
+export { ResumeManager } from './ResumeManager';

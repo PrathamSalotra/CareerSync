@@ -1,101 +1,77 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Navbar } from '../components/common/Navbar';
-import { Footer } from '../components/common/Footer';
-import './Register.css';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import { Navbar } from '../../../components/common/Navbar';
+import { Footer } from '../../../components/common/Footer';
+import { SocialProof } from '../../../components/auth/SocialProof';
+import './Login.css';
 
 // Flag to easily toggle social logins if OAuth is configured in the future
-// Set to false per requirement: remove options not yet implemented on the backend.
+// Set to false by default per requirement: remove options not yet implemented on the backend.
 const ENABLE_SOCIAL_AUTH = false;
 
-export const Register = () => {
+export const Login = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const location = useLocation();
+  const { login } = useAuth();
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [agreeTerms, setAgreeTerms] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Password strength calculation
-  const getPasswordStrength = (pwd) => {
-    if (!pwd) return { score: 0, label: '', color: 'transparent' };
-    let score = 0;
-    if (pwd.length >= 8) score++;
-    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score++;
-
-    if (score === 1) return { score: 1, label: 'Weak', color: 'var(--color-error)' };
-    if (score === 2) return { score: 2, label: 'Fair', color: '#d97706' };
-    if (score === 3) return { score: 3, label: 'Strong', color: 'var(--color-secondary)' };
-    return { score: 0, label: 'Too short', color: 'var(--color-error)' };
-  };
-
-  const strength = getPasswordStrength(password);
+  // Destination after login (e.g. redirected from protected route)
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLoading || isSuccess) return;
 
-    if (!agreeTerms) {
-      setErrorMessage('Please agree to the Terms of Service and Privacy Policy to continue.');
-      return;
-    }
-
-    if (strength.score < 3) {
-      setErrorMessage('Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.');
-      return;
-    }
-
     setErrorMessage('');
     setIsLoading(true);
 
     try {
-      await signup(name, email, password);
+      await login(email, password);
       setIsSuccess(true);
       setTimeout(() => {
-        navigate('/dashboard', { replace: true });
+        navigate(from, { replace: true });
       }, 700);
     } catch (err) {
       setIsLoading(false);
       setErrorMessage(
-        err.message || 'Unable to create account. Please check your information.'
+        err.message || 'Unable to sign in. Please verify your email and password.'
       );
     }
   };
 
   return (
-    <div className="cs-register-page">
+    <div className="cs-login-page">
       <Navbar />
 
-      <main className="cs-register-main">
-        {/* Ambient atmospheric blur orbs */}
-        <div className="cs-ambient-orb-top" aria-hidden="true" />
-        <div className="cs-ambient-orb-bottom" aria-hidden="true" />
+      <main className="cs-login-main">
+        {/* Ambient background blur glow */}
+        <div className="cs-ambient-glow" aria-hidden="true" />
 
-        <div className="cs-register-container">
-          <div className="cs-register-card animate-slide-up">
+        <div className="cs-login-container">
+          <div className="cs-login-card animate-slide-up">
             {/* Header / Title */}
-            <div className="cs-reg-header">
-              <h1 className="cs-reg-title">Create your Account</h1>
-              <p className="cs-reg-subtitle">
-                Start exploring high-affinity AI matched roles.
+            <div className="cs-card-header">
+              <h1 className="cs-card-title">Welcome Back</h1>
+              <p className="cs-card-subtitle">
+                Sign in to access your AI job matching intelligence and career dossier.
               </p>
             </div>
 
-            {/* Optional Social Register Buttons */}
+            {/* Optional Social Login Buttons (Configurable) */}
             {ENABLE_SOCIAL_AUTH && (
               <>
                 <div className="cs-social-buttons">
                   <button
                     type="button"
                     className="cs-social-btn"
-                    onClick={() => alert('Google Sign-Up is not configured yet.')}
+                    onClick={() => alert('Google Sign-In is not configured yet.')}
                   >
                     <svg className="cs-social-icon" viewBox="0 0 24 24" aria-hidden="true">
                       <path
@@ -120,7 +96,7 @@ export const Register = () => {
                   <button
                     type="button"
                     className="cs-social-btn"
-                    onClick={() => alert('GitHub Sign-Up is not configured yet.')}
+                    onClick={() => alert('GitHub Sign-In is not configured yet.')}
                   >
                     <svg className="cs-social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path
@@ -135,12 +111,12 @@ export const Register = () => {
 
                 <div className="cs-divider">
                   <div className="cs-divider-line" />
-                  <span className="cs-divider-text">Or register with email</span>
+                  <span className="cs-divider-text">Or continue with email</span>
                 </div>
               </>
             )}
 
-            {/* Error Notification */}
+            {/* Error Notification Banner */}
             {errorMessage && (
               <div className="cs-alert-error animate-shake" role="alert">
                 <svg className="cs-alert-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -154,37 +130,12 @@ export const Register = () => {
               </div>
             )}
 
-            {/* Registration Form */}
-            <form className="cs-reg-form" onSubmit={handleSubmit} noValidate>
-              {/* Full Name */}
+            {/* Login Form */}
+            <form className="cs-login-form" onSubmit={handleSubmit} noValidate>
+              {/* Email Field */}
               <div className="cs-form-group">
-                <label className="cs-label" htmlFor="reg-name">
-                  Full Name
-                </label>
-                <div className="cs-input-wrapper">
-                  <svg className="cs-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  <input
-                    id="reg-name"
-                    type="text"
-                    name="name"
-                    className="cs-input"
-                    placeholder="Alex Rivera"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    autoComplete="name"
-                    disabled={isLoading || isSuccess}
-                  />
-                </div>
-              </div>
-
-              {/* Work Email */}
-              <div className="cs-form-group">
-                <label className="cs-label" htmlFor="reg-email">
-                  Work Email
+                <label className="cs-label" htmlFor="email-input">
+                  Email
                 </label>
                 <div className="cs-input-wrapper">
                   <svg className="cs-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -192,11 +143,11 @@ export const Register = () => {
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                   </svg>
                   <input
-                    id="reg-email"
+                    id="email-input"
                     type="email"
                     name="email"
                     className="cs-input"
-                    placeholder="alex@company.com"
+                    placeholder="alex.rivers@design.co"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -206,13 +157,15 @@ export const Register = () => {
                 </div>
               </div>
 
-              {/* Password */}
+              {/* Password Field */}
               <div className="cs-form-group">
                 <div className="cs-label-row">
-                  <label className="cs-label" htmlFor="reg-pass">
+                  <label className="cs-label" htmlFor="password-input">
                     Password
                   </label>
-
+                  <Link to="/forgot-password" className="cs-forgot-link">
+                    Forgot password?
+                  </Link>
                 </div>
                 <div className="cs-input-wrapper">
                   <svg className="cs-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -220,15 +173,15 @@ export const Register = () => {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                   <input
-                    id="reg-pass"
+                    id="password-input"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     className="cs-input cs-input-password"
-                    placeholder="Min. 8 characters"
+                    placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    autoComplete="new-password"
+                    autoComplete="current-password"
                     disabled={isLoading || isSuccess}
                   />
                   <button
@@ -236,6 +189,7 @@ export const Register = () => {
                     className="cs-password-toggle"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    tabIndex={0}
                   >
                     {showPassword ? (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cs-toggle-icon" aria-hidden="true">
@@ -252,48 +206,6 @@ export const Register = () => {
                     )}
                   </button>
                 </div>
-
-                {/* Password Strength Hint */}
-                <div className="cs-strength-meter">
-                  <p className="cs-strength-hint">
-                    {strength.score === 3 ? (
-                      <svg className="cs-hint-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ color: 'var(--color-secondary)' }}>
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    ) : (
-                      <svg className="cs-hint-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ color: 'var(--color-outline-variant)' }}>
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                    <span style={{ color: strength.score === 3 ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)' }}>
-                      8+ characters with mixed case, numbers &amp; symbols
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Terms Checkbox */}
-              <div className="cs-terms-group">
-                <label className="cs-checkbox-label">
-                  <input
-                    type="checkbox"
-                    className="cs-checkbox"
-                    checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
-                    disabled={isLoading || isSuccess}
-                  />
-                  <span className="cs-checkbox-text">
-                    I agree to the{' '}
-                    <Link to="/about" className="cs-inline-link">
-                      Terms of Service
-                    </Link>{' '}
-                    and acknowledge the{' '}
-                    <Link to="/about" className="cs-inline-link">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </span>
-                </label>
               </div>
 
               {/* Submit CTA */}
@@ -305,18 +217,18 @@ export const Register = () => {
                 {isLoading ? (
                   <>
                     <span className="cs-btn-spinner" aria-hidden="true" />
-                    <span>Creating Account...</span>
+                    <span>Authenticating...</span>
                   </>
                 ) : isSuccess ? (
                   <>
                     <svg className="cs-btn-check-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    <span>Account Created</span>
+                    <span>Authenticated</span>
                   </>
                 ) : (
                   <>
-                    <span>Create CareerSync Account</span>
+                    <span>Sign In to CareerSync</span>
                     <svg className="cs-btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <line x1="5" y1="12" x2="19" y2="12" />
                       <polyline points="12 5 19 12 12 19" />
@@ -326,19 +238,19 @@ export const Register = () => {
               </button>
             </form>
 
-            {/* Sign In Prompt */}
-            <div className="cs-signin-prompt">
-              <p className="cs-signin-text">
-                Already have an account?{' '}
-                <Link to="/login" className="cs-signin-link">
-                  Sign in
-                  <svg className="cs-chevron-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
+            {/* Sign Up Link */}
+            <div className="cs-signup-prompt">
+              <p className="cs-signup-text">
+                Don't have an account?{' '}
+                <Link to="/signup" className="cs-signup-link">
+                  Sign up for free
                 </Link>
               </p>
             </div>
           </div>
+
+          {/* Social Proof Pill below card */}
+          <SocialProof />
         </div>
       </main>
 

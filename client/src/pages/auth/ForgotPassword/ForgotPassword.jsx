@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Navbar } from '../components/common/Navbar';
-import { Footer } from '../components/common/Footer';
+import { useAuth } from '../../../context/AuthContext';
+import { Navbar } from '../../../components/common/Navbar';
+import { Footer } from '../../../components/common/Footer';
 import './ForgotPassword.css';
 
 export const ForgotPassword = () => {

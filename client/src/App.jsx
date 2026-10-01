@@ -1,22 +1,21 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { OtpVerification } from './pages/OtpVerification';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { ResetPassword } from './pages/ResetPassword';
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
+import { OtpVerification } from './pages/auth/OtpVerification';
+import { ForgotPassword } from './pages/auth/ForgotPassword';
+import { ResetPassword } from './pages/auth/ResetPassword';
+import { Dashboard } from './pages/dashboard';
+import { SearchAnalyzer } from './pages/search';
+import { ResumeManager } from './pages/resumes';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
 import './App.css';
 
 // Placeholder route wrappers for upcoming phases
 const HomePlaceholder = () => <Navigate to="/login" replace />;
 
-const DashboardPlaceholder = () => (
-  <div style={{ padding: '3rem', textAlign: 'center', fontFamily: 'var(--font-family)' }}>
-    <h2>Dashboard</h2>
-    <p>Welcome to CareerSync Dashboard.</p>
-  </div>
-);
+
 const AboutPlaceholder = () => (
   <div style={{ padding: '3rem', textAlign: 'center', fontFamily: 'var(--font-family)' }}>
     <h2>CareerSync Help &amp; Support</h2>
@@ -27,26 +26,27 @@ const AboutPlaceholder = () => (
   </div>
 );
 
+const router = createBrowserRouter([
+  { path: '/', element: <HomePlaceholder /> },
+  { path: '/login', element: <Login /> },
+  { path: '/signup', element: <Register /> },
+  { path: '/register', element: <Register /> },
+  { path: '/verify-otp', element: <OtpVerification /> },
+  { path: '/otp-verification', element: <OtpVerification /> },
+  { path: '/forgot-password/verify', element: <OtpVerification /> },
+  { path: '/forgot-password', element: <ForgotPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
+  { path: '/dashboard', element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
+  { path: '/resumes', element: <ProtectedRoute><ResumeManager /></ProtectedRoute> },
+  { path: '/search', element: <ProtectedRoute><SearchAnalyzer /></ProtectedRoute> },
+  { path: '/about', element: <AboutPlaceholder /> },
+  { path: '*', element: <Navigate to="/login" replace /> }
+]);
+
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePlaceholder />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Register />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify-otp" element={<OtpVerification />} />
-          <Route path="/otp-verification" element={<OtpVerification />} />
-          <Route path="/forgot-password/verify" element={<OtpVerification />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/dashboard" element={<DashboardPlaceholder />} />
-          <Route path="/about" element={<AboutPlaceholder />} />
-          {/* Catch all to login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </AuthProvider>
   );
 }
