@@ -60,6 +60,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Convert owner to lowercase
+        run: echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       # Build and Push Server Image
       - name: Build and push Server Image
         uses: docker/build-push-action@v5
@@ -67,7 +70,7 @@ jobs:
           context: ./server
           push: true
           # Converts repo name to lowercase to meet Docker naming requirements
-          tags: ghcr.io/${{ github.repository_owner }}/careersync-server:latest
+          tags: ghcr.io/${{ env.REPO_OWNER }}/careersync-server:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -77,6 +80,6 @@ jobs:
         with:
           context: ./client
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/careersync-client:latest
+          tags: ghcr.io/${{ env.REPO_OWNER }}/careersync-client:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
