@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Navbar } from '../../components/common/Navbar';
@@ -28,8 +28,18 @@ export const SearchAnalyzer = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isResumeDropdownOpen, setIsResumeDropdownOpen] = useState(false);
+  const resumeDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (resumeDropdownRef.current && !resumeDropdownRef.current.contains(event.target)) {
+        setIsResumeDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Search State
   const [query, setQuery] = useState('');
@@ -65,55 +75,42 @@ export const SearchAnalyzer = () => {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const historyId = location.state?.historyId;
+      if (historyId) {
+        setIsSearching(true);
+        setError(null);
+        try {
+          const data = await apiClient(`/api/search/${historyId}`);
+          if (data) {
+            setQuery(data.query || '');
+            setCountry(data.country || 'us');
+            setCityOrState(data.cityOrState || '');
+            setWorkArrangement(data.workArrangement || '');
+            
+            if (data.searchMode === 'resume' && data.resumeId) {
+              setResumeId(data.resumeId);
+            }
+            
+            if (data.results && data.results.length > 0) {
+              setJobs(data.results);
+              setSelectedJob(data.results[0]);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load history item:', err);
+          setError('Failed to load this search from history.');
+        } finally {
+          setIsSearching(false);
+        }
+      }
+    };
+    
+    fetchHistory();
+  }, [location.state?.historyId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.split(' ');
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return name[0].toUpperCase();
-  };
 
-  const rightAction = (
-    <div className="cs-account-dropdown">
-      <button
-        className="cs-account-btn"
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        aria-expanded={isDropdownOpen}
-      >
-        <div className="cs-avatar">
-          {getInitials(user?.name)}
-        </div>
-        <span className="cs-user-name">{user?.name || 'User'}</span>
-        <span className="material-symbols-outlined">expand_more</span>
-      </button>
-
-      {isDropdownOpen && (
-        <div className="cs-dropdown-menu">
-          <div className="cs-dropdown-header">
-            <p className="cs-dropdown-name">{user?.name}</p>
-            <p className="cs-dropdown-email">{user?.email}</p>
-          </div>
-          <div className="cs-dropdown-divider"></div>
-          <Link to="/forgot-password" className="cs-dropdown-item">
-            <span className="material-symbols-outlined">lock_reset</span>
-            Change Password
-          </Link>
-          <button onClick={handleLogout} className="cs-dropdown-item cs-text-error">
-            <span className="material-symbols-outlined">logout</span>
-            Logout
-          </button>
-        </div>
-      )}
-    </div>
-  );
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -156,7 +153,7 @@ export const SearchAnalyzer = () => {
 
   return (
     <div className="cs-search-page">
-      <Navbar rightAction={rightAction} />
+      <Navbar />
 
       <main className="cs-search-main">
         {/* Filter Bar */}
@@ -197,7 +194,7 @@ export const SearchAnalyzer = () => {
 
               <div className="cs-search-select-group cs-search-resume-group">
                 <span className="material-symbols-outlined">description</span>
-                <div className="cs-resume-dropdown-container">
+                <div className="cs-resume-dropdown-container" ref={resumeDropdownRef}>
                   <button
                     type="button"
                     className="cs-search-select-btn"
@@ -208,27 +205,25 @@ export const SearchAnalyzer = () => {
                     </span>
                     <span className="material-symbols-outlined">expand_more</span>
                   </button>
-                  {isResumeDropdownOpen && (
-                    <div className="cs-resume-dropdown-menu">
+                  <div className={`cs-resume-dropdown-menu ${isResumeDropdownOpen ? 'open' : ''}`}>
+                    <button 
+                      type="button" 
+                      className={`cs-resume-dropdown-item ${!resumeId ? 'active' : ''}`}
+                      onClick={() => { setResumeId(''); setIsResumeDropdownOpen(false); }}
+                    >
+                      No Resume (Job Only)
+                    </button>
+                    {resumes.map(r => (
                       <button 
                         type="button" 
-                        className={`cs-resume-dropdown-item ${!resumeId ? 'active' : ''}`}
-                        onClick={() => { setResumeId(''); setIsResumeDropdownOpen(false); }}
+                        key={r._id || r.id} 
+                        className={`cs-resume-dropdown-item ${resumeId === (r._id || r.id) ? 'active' : ''}`}
+                        onClick={() => { setResumeId(r._id || r.id); setIsResumeDropdownOpen(false); }}
                       >
-                        No Resume (Job Only)
+                        {r.originalFilename}
                       </button>
-                      {resumes.map(r => (
-                        <button 
-                          type="button" 
-                          key={r._id || r.id} 
-                          className={`cs-resume-dropdown-item ${resumeId === (r._id || r.id) ? 'active' : ''}`}
-                          onClick={() => { setResumeId(r._id || r.id); setIsResumeDropdownOpen(false); }}
-                        >
-                          {r.originalFilename}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
 

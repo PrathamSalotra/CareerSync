@@ -109,19 +109,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: var(--color-surface-container-highest);
+  padding: 0 1rem;
+  height: 2.5rem;
+  background-color: #FFFFFF;
   border-radius: 0.75rem;
   flex: 1;
   min-width: 150px;
-}
-
-.cs-search-select-group {
-  max-width: 250px;
-}
-
-.cs-search-input-group {
-  min-width: 200px;
 }
 
 .cs-search-input-group .material-symbols-outlined,
@@ -182,7 +175,8 @@
 
 .cs-resume-dropdown-menu {
   position: absolute;
-  top: calc(100% + 1rem); /* below the group */
+  top: calc(100% + 1rem);
+  /* below the group */
   left: 0;
   background-color: var(--color-surface-container-lowest);
   border-radius: 1rem;
@@ -192,10 +186,21 @@
   max-width: 250px;
   padding: 0.5rem;
   z-index: 100;
-  animation: slideDown 0.2s ease-out;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.cs-resume-dropdown-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .cs-resume-dropdown-item {
@@ -240,6 +245,7 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .cs-btn-search:hover:not(:disabled) {
@@ -463,6 +469,30 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-height: 860px;
+  /* Approximately 4 job cards */
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-outline-variant) var(--color-surface-container);
+}
+
+.cs-search-jobs-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cs-search-jobs-list::-webkit-scrollbar-track {
+  background: var(--color-surface-container);
+  border-radius: 10px;
+}
+
+.cs-search-jobs-list::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 10px;
+}
+
+.cs-search-jobs-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
 }
 
 .cs-job-card {
@@ -476,6 +506,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--color-outline-variant);
+  flex-shrink: 0;
 }
 
 .cs-job-card:hover {
@@ -1002,6 +1033,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
