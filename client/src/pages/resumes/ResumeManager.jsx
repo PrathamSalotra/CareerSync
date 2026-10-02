@@ -16,6 +16,7 @@ export const ResumeManager = () => {
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedResumeId, setSelectedResumeId] = useState(null);
   
   const fileInputRef = useRef(null);
 
@@ -25,6 +26,9 @@ export const ResumeManager = () => {
       const data = await apiClient('/api/resumes');
       if (data && data.resumes) {
         setResumes(data.resumes);
+        if (data.resumes.length > 0) {
+          setSelectedResumeId(data.resumes[0]._id || data.resumes[0].id);
+        }
       }
     } catch (err) {
       setError(err.message || 'Failed to load resumes');
@@ -244,6 +248,13 @@ export const ResumeManager = () => {
                     <div key={resume._id || resume.id} className="cs-resume-card">
                       <div className="cs-resume-card-top">
                         <div className="cs-resume-info-group">
+                          <input 
+                            type="radio" 
+                            name="selectedResume" 
+                            className="cs-resume-radio"
+                            checked={selectedResumeId === (resume._id || resume.id)}
+                            onChange={() => setSelectedResumeId(resume._id || resume.id)}
+                          />
                           <div className={`cs-resume-file-icon ${resume.mimeType === 'application/pdf' ? 'pdf' : 'docx'}`}>
                             <span className="material-symbols-outlined">
                               {resume.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'description'}
@@ -288,23 +299,29 @@ export const ResumeManager = () => {
                 <span className="cs-sidebar-title">AI Profile Extraction</span>
               </div>
               
-              {resumes.length > 0 && resumes[0].parsed ? (
-                <div className="cs-sidebar-card">
-                  <div className="cs-profile-header">
-                    <div className="cs-profile-avatar">
-                      <span className="material-symbols-outlined">badge</span>
+              {resumes.length > 0 && selectedResumeId ? (
+                (() => {
+                  const selectedResume = resumes.find(r => (r._id || r.id) === selectedResumeId) || resumes[0];
+                  if (!selectedResume.parsed) return null;
+                  return (
+                    <div className="cs-sidebar-card">
+                      <div className="cs-profile-header">
+                        <div className="cs-profile-avatar">
+                          <span className="material-symbols-outlined">badge</span>
+                        </div>
+                        <div>
+                          <p className="cs-profile-name">{selectedResume.parsed.candidateName || 'Unknown Candidate'}</p>
+                        </div>
+                      </div>
+                      <div className="cs-profile-details">
+                        <div className="cs-profile-row">
+                          <span className="cs-profile-label">Total Experience</span>
+                          <span className="cs-profile-value">{selectedResume.parsed.totalYearsExperience || 0}+ yrs</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="cs-profile-name">{resumes[0].parsed.candidateName || 'Unknown Candidate'}</p>
-                    </div>
-                  </div>
-                  <div className="cs-profile-details">
-                    <div className="cs-profile-row">
-                      <span className="cs-profile-label">Total Experience</span>
-                      <span className="cs-profile-value">{resumes[0].parsed.totalYearsExperience || 0}+ yrs</span>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()
               ) : (
                 <div className="cs-sidebar-empty">
                   Upload a resume to see AI extraction details.
@@ -316,7 +333,7 @@ export const ResumeManager = () => {
                   <span className="material-symbols-outlined">hub</span>
                   Recommended Next Step
                 </div>
-                <button className="cs-btn-matched-jobs" onClick={() => navigate('/search', { viewTransition: true })}>
+                <button className="cs-btn-matched-jobs" onClick={() => navigate(selectedResumeId ? `/search?resumeId=${selectedResumeId}` : '/search', { viewTransition: true })}>
                   View Matched Jobs
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>

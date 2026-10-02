@@ -4,16 +4,16 @@ import { apiClient } from '../../api/client';
 import { Navbar } from '../../components/common/Navbar';
 import { Footer } from '../../components/common/Footer';
 import './SearchAnalyzer.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const COUNTRIES = [
-  { code: 'us', name: 'United States' },
-  { code: 'gb', name: 'United Kingdom' },
-  { code: 'ca', name: 'Canada' },
-  { code: 'au', name: 'Australia' },
-  { code: 'in', name: 'India' },
-  { code: 'de', name: 'Germany' },
-  { code: 'fr', name: 'France' },
+  { code: 'us', name: 'US' },
+  { code: 'gb', name: 'UK' },
+  { code: 'ca', name: 'Can' },
+  { code: 'au', name: 'Aus' },
+  { code: 'in', name: 'In' },
+  { code: 'de', name: 'Ger' },
+  { code: 'fr', name: 'Fr' },
 ];
 
 const WORK_ARRANGEMENTS = [
@@ -26,14 +26,17 @@ const WORK_ARRANGEMENTS = [
 export const SearchAnalyzer = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
+  const [isResumeDropdownOpen, setIsResumeDropdownOpen] = useState(false);
+
   // Search State
   const [query, setQuery] = useState('');
   const [country, setCountry] = useState('us');
   const [cityOrState, setCityOrState] = useState('');
   const [workArrangement, setWorkArrangement] = useState('');
-  const [resumeId, setResumeId] = useState('');
+  const [resumeId, setResumeId] = useState(searchParams.get('resumeId') || '');
   const [resumes, setResumes] = useState([]);
 
   // Results State
@@ -56,6 +59,12 @@ export const SearchAnalyzer = () => {
     fetchResumes();
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get('resumeId')) {
+      handleSearch({ preventDefault: () => {} });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -74,8 +83,8 @@ export const SearchAnalyzer = () => {
 
   const rightAction = (
     <div className="cs-account-dropdown">
-      <button 
-        className="cs-account-btn" 
+      <button
+        className="cs-account-btn"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         aria-expanded={isDropdownOpen}
       >
@@ -148,12 +157,12 @@ export const SearchAnalyzer = () => {
   return (
     <div className="cs-search-page">
       <Navbar rightAction={rightAction} />
-      
+
       <main className="cs-search-main">
         {/* Filter Bar */}
         <section className="cs-search-filter-section">
           <div className="cs-search-filter-container">
-            
+
             <div className="cs-search-header-group">
               <div className="cs-search-title-box">
                 <h1 className="cs-search-title">Discovery Engine</h1>
@@ -164,9 +173,9 @@ export const SearchAnalyzer = () => {
             <form onSubmit={handleSearch} className="cs-search-form">
               <div className="cs-search-input-group">
                 <span className="material-symbols-outlined">search</span>
-                <input 
-                  type="text" 
-                  placeholder="Role, skills, or title..." 
+                <input
+                  type="text"
+                  placeholder="Role, skills, or title..."
                   className="cs-search-input"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -175,55 +184,56 @@ export const SearchAnalyzer = () => {
 
               <div className="cs-search-input-group cs-search-input-location">
                 <span className="material-symbols-outlined">location_on</span>
-                <input 
-                  type="text" 
-                  placeholder="City or State..." 
+                <input
+                  type="text"
+                  placeholder="City or State..."
                   className="cs-search-input"
                   value={cityOrState}
                   onChange={(e) => setCityOrState(e.target.value)}
                 />
               </div>
-              
-              <div className="cs-search-select-group">
-                <span className="material-symbols-outlined">public</span>
-                <select 
-                  className="cs-search-select"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                >
-                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-                </select>
-              </div>
 
-              <div className="cs-search-select-group">
-                <span className="material-symbols-outlined">work</span>
-                <select 
-                  className="cs-search-select"
-                  value={workArrangement}
-                  onChange={(e) => setWorkArrangement(e.target.value)}
-                >
-                  {WORK_ARRANGEMENTS.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
-                </select>
-              </div>
 
-              {resumes.length > 0 && (
-                <div className="cs-search-select-group cs-search-resume-group">
-                  <span className="material-symbols-outlined">description</span>
-                  <select 
-                    className="cs-search-select"
-                    value={resumeId}
-                    onChange={(e) => setResumeId(e.target.value)}
+
+              <div className="cs-search-select-group cs-search-resume-group">
+                <span className="material-symbols-outlined">description</span>
+                <div className="cs-resume-dropdown-container">
+                  <button
+                    type="button"
+                    className="cs-search-select-btn"
+                    onClick={() => setIsResumeDropdownOpen(!isResumeDropdownOpen)}
                   >
-                    <option value="">No Resume (Job Only)</option>
-                    {resumes.map(r => (
-                      <option key={r._id} value={r._id}>{r.originalFilename}</option>
-                    ))}
-                  </select>
+                    <span className="cs-search-select-text">
+                      {resumeId ? (resumes.find(r => r._id === resumeId || r.id === resumeId)?.originalFilename || 'Unknown Resume') : 'No Resume (Job Only)'}
+                    </span>
+                    <span className="material-symbols-outlined">expand_more</span>
+                  </button>
+                  {isResumeDropdownOpen && (
+                    <div className="cs-resume-dropdown-menu">
+                      <button 
+                        type="button" 
+                        className={`cs-resume-dropdown-item ${!resumeId ? 'active' : ''}`}
+                        onClick={() => { setResumeId(''); setIsResumeDropdownOpen(false); }}
+                      >
+                        No Resume (Job Only)
+                      </button>
+                      {resumes.map(r => (
+                        <button 
+                          type="button" 
+                          key={r._id || r.id} 
+                          className={`cs-resume-dropdown-item ${resumeId === (r._id || r.id) ? 'active' : ''}`}
+                          onClick={() => { setResumeId(r._id || r.id); setIsResumeDropdownOpen(false); }}
+                        >
+                          {r.originalFilename}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isSearching}
                 className="cs-btn-search"
               >
@@ -231,6 +241,40 @@ export const SearchAnalyzer = () => {
                 {!isSearching && <span className="material-symbols-outlined">arrow_forward</span>}
               </button>
             </form>
+
+            <div className="cs-search-options-row">
+              <div className="cs-options-group">
+                <span className="cs-options-label">Country:</span>
+                <div className="cs-options-buttons">
+                  {COUNTRIES.map(c => (
+                    <button 
+                      key={c.code} 
+                      type="button" 
+                      className={`cs-option-btn ${country === c.code ? 'active' : ''}`}
+                      onClick={() => setCountry(c.code)}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="cs-options-group">
+                <span className="cs-options-label">Arrangement:</span>
+                <div className="cs-options-buttons">
+                  {WORK_ARRANGEMENTS.map(w => (
+                    <button 
+                      key={w.value} 
+                      type="button" 
+                      className={`cs-option-btn ${workArrangement === w.value ? 'active' : ''}`}
+                      onClick={() => setWorkArrangement(w.value)}
+                    >
+                      {w.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             {error && (
               <div className="cs-search-error">
@@ -253,7 +297,7 @@ export const SearchAnalyzer = () => {
             </div>
           ) : (
             <div className="cs-search-grid">
-              
+
               {/* LEFT COLUMN: Matched Opportunities */}
               <div className="cs-search-list-col">
                 <div className="cs-search-list-header">
@@ -279,15 +323,15 @@ export const SearchAnalyzer = () => {
                       let tintClass = 'cs-job-tint-low';
                       if (job.matchScore >= 90) tintClass = 'cs-job-tint-high';
                       else if (job.matchScore >= 80) tintClass = 'cs-job-tint-mid';
-                      
+
                       return (
-                        <div 
-                          key={job.jobId} 
+                        <div
+                          key={job.jobId}
                           onClick={() => setSelectedJob(job)}
                           className={`cs-job-card ${isSelected ? 'cs-job-card-selected' : ''}`}
                         >
                           {isSelected && <div className="cs-job-card-indicator"></div>}
-                          
+
                           <div className={`cs-job-card-inner ${tintClass}`}>
                             <div className="cs-job-card-top">
                               <span className="cs-job-date">
@@ -306,7 +350,7 @@ export const SearchAnalyzer = () => {
                           <div className="cs-job-card-bottom">
                             <div className="cs-job-salary-loc">
                               {job.salaryMin && job.salaryMax ? (
-                                <div className="cs-job-salary">${Math.round(job.salaryMin/1000)}k - ${Math.round(job.salaryMax/1000)}k</div>
+                                <div className="cs-job-salary">${Math.round(job.salaryMin / 1000)}k - ${Math.round(job.salaryMax / 1000)}k</div>
                               ) : (
                                 <div className="cs-job-salary-empty">Salary Undisclosed</div>
                               )}
@@ -344,9 +388,9 @@ export const SearchAnalyzer = () => {
                         </div>
                       </div>
                       {selectedJob.redirectUrl && (
-                        <a 
-                          href={selectedJob.redirectUrl} 
-                          target="_blank" 
+                        <a
+                          href={selectedJob.redirectUrl}
+                          target="_blank"
                           rel="noreferrer"
                           className="cs-btn-view-original"
                         >
@@ -361,11 +405,11 @@ export const SearchAnalyzer = () => {
                       <div className="cs-score-gauge-container">
                         <svg className="cs-score-gauge" viewBox="0 0 100 100">
                           <circle className="cs-gauge-bg" cx="50" cy="50" fill="none" r="42" strokeWidth="8"></circle>
-                          <circle 
-                            className="cs-gauge-fg" 
-                            cx="50" cy="50" fill="none" r="42" 
-                            strokeDasharray="263.89" 
-                            strokeDashoffset={263.89 - (263.89 * selectedJob.matchScore) / 100} 
+                          <circle
+                            className="cs-gauge-fg"
+                            cx="50" cy="50" fill="none" r="42"
+                            strokeDasharray="263.89"
+                            strokeDashoffset={263.89 - (263.89 * selectedJob.matchScore) / 100}
                             strokeLinecap="round" strokeWidth="8"
                           ></circle>
                         </svg>
@@ -374,7 +418,7 @@ export const SearchAnalyzer = () => {
                           <span className="cs-gauge-label">FIT SCORE</span>
                         </div>
                       </div>
-                      
+
                       <div className="cs-score-info">
                         <div className="cs-score-title">
                           <span className="material-symbols-outlined">auto_awesome</span>

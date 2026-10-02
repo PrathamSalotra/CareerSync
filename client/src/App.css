@@ -11,25 +11,39 @@
 }
 
 .cs-dashboard-main,
-.cs-search-main {
+.cs-search-main,
+.cs-resume-main,
+.cs-history-main {
   view-transition-name: main-content;
 }
 
-/* Prevent the navbar from animating, keeping it perfectly static */
+/* Prevent the navbar from animating when navigating between pages, keeping it perfectly static */
 ::view-transition-old(navbar),
 ::view-transition-new(navbar) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-/* Apply the Slide Up & Fade ONLY to the main content */
+/* When coming from Login, there is no old navbar. Animate it in sync with the dashboard. */
+::view-transition-new(navbar):only-child {
+  animation: fade-in-nav 0.4s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes fade-in-nav {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Apply the Slide Up ONLY to the main content */
 ::view-transition-old(main-content) {
-  animation: fade-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+  /* Immediately hide the old content to prevent default cross-fade */
+  animation: none;
+  opacity: 0;
 }
 
 ::view-transition-new(main-content) {
-  animation: fade-in 0.4s cubic-bezier(0, 0, 0.2, 1) both,
-             slide-up 0.4s cubic-bezier(0, 0, 0.2, 1) both;
+  /* Only slide up the new content, no opacity changes */
+  animation: slide-up 0.4s cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 /* Disable the default full-page root animation */
@@ -38,14 +52,7 @@
   animation: none;
 }
 
-@keyframes fade-out {
-  to { opacity: 0; }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-}
-
 @keyframes slide-up {
   from { transform: translateY(20px); }
+  to { transform: translateY(0); }
 }

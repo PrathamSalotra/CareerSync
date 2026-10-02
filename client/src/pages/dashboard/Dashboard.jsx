@@ -161,10 +161,10 @@ export const Dashboard = () => {
                 <h2>Recent Searches</h2>
                 <span className="cs-active-badge">{recentSearches.length} Active Queries</span>
               </div>
-              <a href="#" className="cs-view-all">
+              <Link to="/history" viewTransition className="cs-view-all">
                 View all history
                 <span className="material-symbols-outlined">arrow_forward</span>
-              </a>
+              </Link>
             </div>
 
             {isLoading ? (
@@ -175,7 +175,7 @@ export const Dashboard = () => {
               <div className="cs-empty-state">No recent searches found.</div>
             ) : (
               <div className="cs-recent-grid">
-                {recentSearches.map((search, idx) => {
+                {recentSearches.slice(0, 3).map((search, idx) => {
                   const date = new Date(search.searchedAt).toLocaleDateString(undefined, {
                     month: 'short', day: 'numeric'
                   });
@@ -218,7 +218,7 @@ export const Dashboard = () => {
                           </div>
                           <span className="cs-roles-found">Click details to view</span>
                         </div>
-                        <button className="cs-btn-details">Details</button>
+                        <button className="cs-btn-details" onClick={() => navigate('/history', { viewTransition: true })}>Details</button>
                       </div>
                     </div>
                   );

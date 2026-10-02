@@ -9,6 +9,7 @@ import { ResetPassword } from './pages/auth/ResetPassword';
 import { Dashboard } from './pages/dashboard';
 import { SearchAnalyzer } from './pages/search';
 import { ResumeManager } from './pages/resumes';
+import { SearchHistory } from './pages/history';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import './App.css';
 
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
   { path: '/dashboard', element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
   { path: '/resumes', element: <ProtectedRoute><ResumeManager /></ProtectedRoute> },
   { path: '/search', element: <ProtectedRoute><SearchAnalyzer /></ProtectedRoute> },
+  { path: '/history', element: <ProtectedRoute><SearchHistory /></ProtectedRoute> },
   { path: '/about', element: <AboutPlaceholder /> },
   { path: '*', element: <Navigate to="/login" replace /> }
 ]);

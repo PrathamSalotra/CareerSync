@@ -102,12 +102,24 @@ export const uploadResume = async (req, res) => {
 export const getUserResumes = async (req, res) => {
   const userId = req.userId;
   
+  console.log('[DEBUG] getUserResumes called for userId:', userId);
+
   const resumes = await Resume.find({ 
     userId,
     expiresAt: { $gt: new Date() }
   }).sort({ uploadedAt: -1 });
 
-  return res.status(200).json({ resumes });
+  console.log('[DEBUG] Found resumes count:', resumes.length);
+
+  return res.status(200).json({ 
+    resumes: resumes.map(r => ({
+      _id: r._id,
+      id: r._id,
+      originalFilename: r.originalFilename,
+      uploadedAt: r.uploadedAt,
+      expiresAt: r.expiresAt
+    }))
+  });
 };
 
 export const getResumeById = async (req, res) => {

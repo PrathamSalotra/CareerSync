@@ -17,7 +17,8 @@
 /* Filter Bar */
 .cs-search-filter-section {
   width: 100%;
-  background-color: rgba(242, 244, 246, 0.7); /* surface-container-low with opacity */
+  background-color: rgba(242, 244, 246, 0.7);
+  /* surface-container-low with opacity */
   backdrop-filter: blur(4px);
   border-bottom: 1px solid var(--color-outline-variant);
 }
@@ -59,16 +60,29 @@
 
 .cs-search-title {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.015em;
   color: var(--color-on-surface);
   margin: 0;
+}
+
+@media (min-width: 768px) {
+  .cs-search-title {
+    font-size: 1.875rem;
+  }
 }
 
 .cs-search-subtitle {
   font-size: 0.875rem;
   color: var(--color-on-surface-variant);
   margin: 0;
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .cs-search-subtitle {
+    font-size: 1rem;
+  }
 }
 
 .cs-search-form {
@@ -96,10 +110,14 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(237, 238, 240, 0.5); /* surface-container */
+  background-color: var(--color-surface-container-highest);
   border-radius: 0.75rem;
   flex: 1;
   min-width: 150px;
+}
+
+.cs-search-select-group {
+  max-width: 250px;
 }
 
 .cs-search-input-group {
@@ -121,11 +139,89 @@
   font-size: 0.875rem;
   color: var(--color-on-surface);
   font-family: inherit;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.cs-search-select {
+.cs-resume-dropdown-container {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.cs-search-select-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
   cursor: pointer;
-  appearance: none;
+  padding: 0;
+  color: var(--color-on-surface);
+  font-family: inherit;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+
+.cs-search-select-text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+}
+
+.cs-search-select-btn .material-symbols-outlined {
+  flex-shrink: 0;
+}
+
+.cs-resume-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 1rem); /* below the group */
+  left: 0;
+  background-color: var(--color-surface-container-lowest);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-outline-variant);
+  min-width: 100%;
+  max-width: 250px;
+  padding: 0.5rem;
+  z-index: 100;
+  animation: slideDown 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cs-resume-dropdown-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-on-surface);
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-resume-dropdown-item:hover {
+  background-color: var(--color-surface-container);
+}
+
+.cs-resume-dropdown-item.active {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  font-weight: 600;
 }
 
 .cs-btn-search {
@@ -153,6 +249,73 @@
 .cs-btn-search:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.cs-search-options-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .cs-search-options-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+  }
+}
+
+.cs-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .cs-options-group {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.cs-options-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+}
+
+.cs-options-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cs-option-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  background-color: var(--color-surface-container-highest);
+  color: var(--color-on-surface-variant);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.cs-option-btn:hover {
+  background-color: var(--color-surface-variant);
+  color: var(--color-on-surface);
+}
+
+.cs-option-btn.active {
+  background-color: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  font-weight: 600;
+  border-color: rgba(0, 99, 152, 0.2);
 }
 
 .cs-search-error {
@@ -285,8 +448,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .5;
+  }
 }
 
 .cs-search-jobs-list {
@@ -300,7 +470,7 @@
   background-color: var(--color-surface-container-lowest);
   border-radius: 1.5rem;
   padding: 1rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all var(--transition-fast);
   cursor: pointer;
   position: relative;
@@ -309,7 +479,7 @@
 }
 
 .cs-job-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .cs-job-card-selected {
@@ -337,10 +507,12 @@
   background-color: rgba(205, 229, 255, 0.3);
   border: 1px solid transparent;
 }
+
 .cs-job-tint-mid {
   background-color: rgba(247, 222, 205, 0.3);
   border: 1px solid transparent;
 }
+
 .cs-job-tint-low {
   background-color: rgba(231, 232, 234, 0.6);
   border: 1px solid transparent;
@@ -356,7 +528,7 @@
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 1rem;
-  background-color: rgba(255,255,255,0.8);
+  background-color: rgba(255, 255, 255, 0.8);
   font-weight: 700;
   letter-spacing: 0.05em;
 }
@@ -390,7 +562,7 @@
 .cs-job-tag {
   padding: 0.25rem 0.5rem;
   border-radius: 1rem;
-  background-color: rgba(255,255,255,0.9);
+  background-color: rgba(255, 255, 255, 0.9);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: capitalize;
@@ -481,7 +653,7 @@
   background-color: var(--color-surface-container-lowest);
   border-radius: 1.5rem;
   padding: 2rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--color-outline-variant);
   display: flex;
   flex-direction: column;
@@ -494,7 +666,7 @@
   background-color: var(--color-surface-container-lowest);
   border-radius: 1.5rem;
   padding: 2rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--color-outline-variant);
   display: flex;
   align-items: center;
@@ -823,4 +995,15 @@
 .cs-gap-resource a {
   color: var(--color-secondary);
   text-decoration: underline;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

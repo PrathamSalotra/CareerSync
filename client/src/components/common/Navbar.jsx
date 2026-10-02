@@ -6,14 +6,15 @@ import './Navbar.css';
 export const Navbar = ({ rightAction }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
+  const isAuthPage = ['/login', '/signup', '/register', '/forgot-password', '/reset-password'].includes(location.pathname);
   
   return (
     <header className="cs-navbar">
       <div className="cs-navbar-container">
-        <Link to="/" className="cs-brand" aria-label="CareerSync Home">
+        <Link to={isAuthenticated ? "/dashboard" : "/"} className="cs-brand" aria-label="CareerSync Home">
           <span className="cs-brand-text">CareerSync</span>
         </Link>
-        {isAuthenticated && (
+        {isAuthenticated && !isAuthPage && (
           <nav className="cs-nav-center">
             <Link to="/dashboard" viewTransition className={`cs-nav-center-link ${location.pathname === '/dashboard' ? 'active' : ''}`}>
               <span className="material-symbols-outlined">dashboard</span>
@@ -26,6 +27,10 @@ export const Navbar = ({ rightAction }) => {
             <Link to="/search" viewTransition className={`cs-nav-center-link ${location.pathname === '/search' ? 'active' : ''}`}>
               <span className="material-symbols-outlined">search</span>
               Search
+            </Link>
+            <Link to="/history" viewTransition className={`cs-nav-center-link ${location.pathname === '/history' ? 'active' : ''}`}>
+              <span className="material-symbols-outlined">history</span>
+              History
             </Link>
           </nav>
         )}
