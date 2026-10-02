@@ -10,6 +10,8 @@ import { Dashboard } from './pages/dashboard';
 import { SearchAnalyzer } from './pages/search';
 import { ResumeManager } from './pages/resumes';
 import { SearchHistory } from './pages/history';
+import { PrivacyPolicy } from './pages/legal/PrivacyPolicy';
+import { TermsOfService } from './pages/legal/TermsOfService';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import './App.css';
 
@@ -41,6 +43,8 @@ const router = createBrowserRouter([
   { path: '/resumes', element: <ProtectedRoute><ResumeManager /></ProtectedRoute> },
   { path: '/search', element: <ProtectedRoute><SearchAnalyzer /></ProtectedRoute> },
   { path: '/history', element: <ProtectedRoute><SearchHistory /></ProtectedRoute> },
+  { path: '/privacy', element: <PrivacyPolicy /> },
+  { path: '/terms', element: <TermsOfService /> },
   { path: '/about', element: <AboutPlaceholder /> },
   { path: '*', element: <Navigate to="/login" replace /> }
 ]);
