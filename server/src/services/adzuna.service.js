@@ -1,5 +1,6 @@
 import config from '../config/index.js';
 import { AppError } from '../utils/errors.js';
+import https from 'https';
 
 /**
  * Fetches up to 50 jobs from the Adzuna API.
@@ -17,8 +18,6 @@ export const fetchJobs = async (query, country, cityOrState) => {
   const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`);
   url.searchParams.append('app_id', config.ADZUNA_APP_ID);
   url.searchParams.append('app_key', config.ADZUNA_APP_KEY);
-  // Reduced to 24 to exactly fit 2 searches per minute on the Google GenAI 100 RPM Free Tier
-  // 1 search = 1 resume + 1 query + 24 jobs + 24 titles = 50 requests
   url.searchParams.append('results_per_page', '24');
   
   if (query) {
@@ -29,30 +28,35 @@ export const fetchJobs = async (query, country, cityOrState) => {
     url.searchParams.append('where', cityOrState);
   }
 
-  // Sort by date descending (optional, Adzuna defaults to relevance usually, but let's stick to default for better matching)
-  // url.searchParams.append('sort_by', 'date');
+  return new Promise((resolve, reject) => {
+    https.get(url.toString(), {
+      headers: { 'Accept': 'application/json' }
+    }, (res) => {
+      let data = '';
 
-  try {
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        reject(new AppError(502, 'ADZUNA_API_ERROR', `Failed to retrieve jobs: HTTP ${res.statusCode}`));
+        return;
       }
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(parsed.results || []);
+        } catch (e) {
+          reject(new AppError(502, 'ADZUNA_API_ERROR', 'Failed to parse JSON response'));
+        }
+      });
+
+    }).on('error', (err) => {
+      console.error('Network error calling Adzuna API via https:', err);
+      reject(new AppError(502, 'ADZUNA_API_ERROR', 'Failed to retrieve jobs from the external provider.'));
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Adzuna API Error [${response.status}]:`, errorText);
-      throw new AppError(502, 'ADZUNA_API_ERROR', 'Failed to retrieve jobs from the external provider.');
-    }
-
-    const data = await response.json();
-    return data.results || [];
-  } catch (error) {
-    if (error instanceof AppError) throw error;
-    console.error('Network error calling Adzuna API:', error);
-    throw new AppError(502, 'ADZUNA_API_ERROR', 'Failed to connect to the jobs provider.');
-  }
+  });
 };
 
 /**
